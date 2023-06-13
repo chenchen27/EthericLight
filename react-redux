@@ -1,0 +1,41 @@
+1. constant创建常量
+enum VisitorEnum {
+  DETAIL = "detail",
+}
+    
+2. action 引入常量并暴露操作方法
+import VisitorEnum from '@/constants/visitor'
+
+export const saveVisitorDetail = detail => ({ type: VisitorEnum.DETAIL, data: detail });
+
+3. reducer 对action传递给store的数据进行操作并返回给store
+import VisitorEnum from '@/constants/visitor'
+
+const INITIAL_STATE = { visitorDetail: {}}
+
+export default function visitor(state = INITIAL_STATE, action) {
+  const { type, data } = action
+  switch (type) {
+    case VisitorEnum.DETAIL:
+      return { ...state, visitorDetail: data }
+    default:
+      return state
+  }
+}
+
+4. 存储数据  调用dispatch将action返回的数据传递给store
+import { useDispatch } from 'react-redux';
+const dispatch = useDispatch();
+dispatch(saveVisitorDetail(value));
+
+5. 获取数据 调用useSelector获取store中的数据
+import { useSelector } from 'react-redux';
+PageStateProps--> state的类型 
+ interface PageStateProps {
+    visitor: VisitorProps,
+  }
+VisitorProps---> 数据的类型
+ interface VisitorProps {
+    visitorDetail:visitorDetail
+  }
+const { visitorDetail } = useSelector<PageStateProps, VisitorProps>(state => state.visitor);
