@@ -1,0 +1,96 @@
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+
+interface DraggableBodyRowProps extends React.HTMLAttributes<HTMLTableRowElement> {
+  index: number;
+  moveRow: (dragIndex: number, hoverIndex: number) => void;
+}
+const type = 'DraggableBodyRow';
+
+
+
+const DraggableBodyRow = ({
+    index,
+    moveRow,
+    className,
+    style,
+    ...restProps
+  }: DraggableBodyRowProps) => {
+    const ref = useRef<HTMLTableRowElement>(null);
+    const [{ isOver, dropClassName }, drop] = useDrop({
+      accept: type,
+      collect: (monitor) => {
+        const { index: dragIndex } = monitor.getItem() || {};
+        if (dragIndex === index) {
+          return {};
+        }
+        return {
+          isOver: monitor.isOver(),
+          dropClassName: dragIndex < index ? ' drop-over-downward' : ' drop-over-upward',
+        };
+      },
+      drop: (item: { index: number }) => {
+        moveRow(item.index, index);
+      },
+    });
+    const [, drag] = useDrag({
+      type,
+      item: { index },
+      collect: (monitor) => ({
+        isDragging: monitor.isDragging(),
+      }),
+    });
+    drop(drag(ref));
+
+    return (
+      <tr
+        ref={ref}
+        className={`${className}${isOver ? dropClassName : ''}`}
+        style={{ cursor: 'move', ...style }}
+        {...restProps}
+      />
+    );
+  };
+
+const components = {
+    body: {
+      row: DraggableBodyRow,
+    },
+  };
+
+  const moveRow = useCallback(
+    (dragIndex: number, hoverIndex: number) => {
+      const dragRow = formTableData[dragIndex];
+      const movePayload = {
+        standardId: dragRow.id,
+        orderIndex: hoverIndex,
+        itemId: dragRow.itemId,
+      };
+      // 拖拽直接提交
+      moveItem(movePayload).then((response) => callback(response, false));
+
+      // 本地拖拽后提交
+      // formTableData.splice(hoverIndex, 0, formTableData.splice(dragIndex, 1)[0])
+      // setFormTableData([...formTableData]);
+    },
+    [formTableData],
+  );
+
+ <DndProvider backend={HTML5Backend}>
+    <Table
+      rowKey="id"
+      size="middle"
+      pagination={false}
+      columns={columns}
+      dataSource={formTableData}
+      components={components}
+      scroll={{ x: 'max-content' }}
+      onRow={(_, index) => {
+        const attr = {
+          index,
+          moveRow,
+        };
+        return attr as React.HTMLAttributes<any>;
+      }}
+    />
+</DndProvider>
